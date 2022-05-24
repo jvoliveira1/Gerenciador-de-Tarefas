@@ -7,24 +7,40 @@ import { useEffect, useState } from "react";
 
 interface Props{
     selecionado :ITarefa | undefined,
-    finalizarTarefa: () => void
+    finalizarTarefa: () => void,
 }
 
 export default function Cronometro( {selecionado,finalizarTarefa}:Props ){
-    const [tempo, setTempo] = useState<number>();
+    const [tempo, setTempo] = useState<number>(0);
+    const [ativo, setAtivo] = useState<boolean>(false);
     useEffect(() => {
         if (selecionado?.tempo){
             setTempo(tempoParaSegundos(selecionado.tempo))
         }
     },[selecionado])
-    function regressiva (contador: number = 0){
-        setTimeout(()=>{
-            if(contador > 0){
-                setTempo(contador - 1);
-                return regressiva(contador -1)
+    useEffect(()=>{  
+        let decrementar: any
+        if(ativo){
+            console.log(tempo)
+            decrementar = setInterval(()=>{
+                
+            if(tempo > 0){
+                setTempo(tempo - 1);
+                //return regressiva(contador -1) 
             }
-            finalizarTarefa();
-        },1000);
+            else {
+                finalizarTarefa();
+                setAtivo(false)
+            }
+            },1000);
+        }
+        return() => clearInterval(decrementar)   
+    },[ativo, tempo])
+    function comecar (){
+        setAtivo(true)
+    }
+    function pausar (){
+        setAtivo(false)
     }
     return(
         <div className={style.cronometro}>
@@ -32,8 +48,12 @@ export default function Cronometro( {selecionado,finalizarTarefa}:Props ){
             <div className={style.relogioWrapper}>
                 <Relogio tempo={tempo} />
             </div>
-            <Botao onClick={() =>regressiva(tempo)}>
-                Começar!
+            <Botao onClick={() =>{
+                ativo? pausar() : comecar()
+                //setAtivo(!ativo);
+                //regressiva(ativo)
+            }}>
+                {ativo?"Parar!":"Começar"} 
             </Botao>
         </div>
     )
